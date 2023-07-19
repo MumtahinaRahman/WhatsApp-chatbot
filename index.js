@@ -5,12 +5,6 @@ const { Client, RemoteAuth, MessageMedia } = require('whatsapp-web.js');
 const { MongoStore } = require('wwebjs-mongo'); // Require database
 const mongoose = require('mongoose');
 
-
-// variables for hierarchy
-let flag = 0;
-let option;
-
-
 // Load the session data
 mongoose.connect(process.env.MONGODB_URI).then(() => {
     const store = new MongoStore({ mongoose: mongoose });
@@ -27,7 +21,6 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
         qrcode.generate(qr, {small: true});
     });
     
-    
     client.on('ready', () => {
     console.log('Client is ready!');
     });
@@ -38,72 +31,94 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
     });
     
 
-
-
     // e-commerce chat bot 
+
+    // variable for hierarchy
+    let level = 0;
+    let option;
+    let message;
+
     client.on('message_create', (msg) => {
+
+        if (msg.body === 'Back'){
+            level--;
+            client.sendMessage(msg.from, message);
+        }
+
+        if (msg.body === 'Hi' || msg.body === 'Main menu') {
+            level = 0;
+            message = 'Hello, How can we help you today? \nKindly choose from the options bellow: \n1. Show categories \n2. Retrun policy \n3. Talk to an agent';
+            client.sendMessage(msg.from, message);
+        }
+
+        if (level === 0 && msg.body === '1') { 
+            message = 'here are the categories: \nChoose from the given list: \n1. Electronics \n2. Clothing';
+            client.sendMessage(msg.from, message);
+            level = 1; //Electronics
+        }
+
+
+        else if (level === 1 && msg.body === '1') { //Electronics
+            message = 'Choose from the given list: \n1. Computer \n2. Phone \n3. Home aplliances';
+            client.sendMessage(msg.from, message);
+            level = 2;
+            option = 'electronics';
+        }
+
+        else if (option == 'electronics' && level === 2 && msg.body === '1'){ //Computer 
+            
+            client.sendMessage(msg.from, 'https://robishop.com.bd/laptops-computers.html');
+            level++;
+        }
         
-        if (msg.body === 'Hi') {
-            flag = 0;
-            client.sendMessage(msg.from, 'Hello, How can we help you today? \nKindly choose from the options bellow: \n1. Show categories \n2. Retrun policy \n3. Talk to an agent');
+
+        else if (option == 'electronics' && level === 2 && msg.body === '2'){ //Phone
+            client.sendMessage(msg.from, 'https://robishop.com.bd/mobile-phones/smartphones.html');
+            level++;
         }
 
-        if (flag === 0 && msg.body === '1') {
-            client.sendMessage(msg.from, 'here are the categories: \nChoose from the given list: \n1. Electronics \n2. Clothing \n3. Food');
-            flag = 1; //Electronics
+        else if (option == 'electronics' && level === 2 && msg.body === '3'){ //home appl
+            client.sendMessage(msg.from, 'https://robishop.com.bd/electronics.html');
+            level++;
         }
 
-        else if (flag === 0 && msg.body === '2') { //Return policy
+        else if (level === 0 && msg.body === '2') { //Return policy
             client.sendMessage(msg.from, 'Please return within 3 days. \nClothes are not accepted if washed. \nNo return of damaged product.');
         }
 
-        else if (flag === 0 && msg.body === '3') { //Query
+        else if (level === 0 && msg.body === '3') { //Query
             client.sendMessage(msg.from, 'Please leave your query here. Soon one of our agents will reach you.');
-        }
-
-        else if (flag === 1 && msg.body === '1') { //Electronics
-            client.sendMessage(msg.from, 'Choose from the given list: \n1. Computer \n2. Phone \n3. Kitchen gadgets');
-            option = 'electronics'
         }
         
 
-        if (flag === 1 && msg.body === '2') { //Clothing
-            client.sendMessage(msg.from, 'Choose from the given list: \n1. Mens fashion \n2. Womens fashion \n3. Kids');
-            option = "clothing"
+        else if (level === 1 && msg.body === '2') { //Clothing
+            message = 'Choose from the given list: \n1. Mens fashion \n2. Womens fashion \n3. Kids';
+            client.sendMessage(msg.from, message);
+            option = 'clothing';
+            level = 2;
         }
 
-        if (flag === 1 && msg.body === '3') { //Food
-            client.sendMessage(msg.from, 'Choose from the given list: \n1. Drinks and Beverage \n2. Frozen \n3. Fruits and Vegetables');
-            option = 'food'
+        else if (option == 'clothing' && level === 2 && msg.body === '1'){ //Men 
+            client.sendMessage(msg.from, 'Link to Mens Fashion');
+            level++;
+        }
+        
+
+        else if (option === 'clothing' && level === 2 && msg.body === '2'){ //Women
+            client.sendMessage(msg.from, 'Link to Women Fashion');
+            level++;
         }
 
-        // else if (option === 'clothing')
-
-        // else if (option === 'food')
+        else if (option === 'clothing' && level === 2 && msg.body === '3'){ //Kids
+            client.sendMessage(msg.from, 'Link to Kids Fashion');
+            level++;
+        }
         
     });
 
-    client.on('message_options', (msg) => {
-        
-        if ( msg.fromMe ) {
-            if (option === 'electronics' && msg.body === '1'){ //Computer
-                client.sendMessage(msg.from, '**Link to Computers page**');
-            }
-        } 
-
-        else if (option === 'electronics' && msg.body === '2'){ //Phone
-            client.sendMessage(msg.from, '**Link to Phones page**');
-        }
-
-        else if (option === 'electronics' && msg.body === '3'){ //Kitchen
-            client.sendMessage(msg.from, '**Link to Kitchen gadgets page**');
-        }
-    });   
 
 
-
-// Robi shop chat bot
-
+    // Robi shop chat bot
     let userName;
     let password;
     let credentials;
@@ -112,7 +127,6 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
     let data;
     let orderID;
 
-    
     client.on('message', async (msg) => {
         if (msg.body.startsWith("username ")){
         userName = msg.body.slice(9);
@@ -145,7 +159,6 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
             data : loginData
             };
             
-            
             await axios.request(loginConfig)
             .then((response) => {
             console.log(JSON.stringify(response.data));
@@ -157,7 +170,6 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
     
             return token;
         }
-
 
         if (msg.body.startsWith("orderID ")) {
                       
@@ -203,15 +215,5 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
             msg.reply(status);
         }
 
-
     });
-
-    
-    
-
-
 });
-
-
-
-  
