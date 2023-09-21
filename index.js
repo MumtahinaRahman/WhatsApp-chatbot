@@ -1,5 +1,6 @@
 require('dotenv').config({ path: './.env' });
 const qrcode = require('qrcode-terminal');
+// const qrcode = require('qrcode');
 const axios = require('axios');
 const { Client, RemoteAuth, MessageMedia } = require('whatsapp-web.js');
 const { MongoStore } = require('wwebjs-mongo'); // Require database
@@ -21,14 +22,30 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
         qrcode.generate(qr, {small: true});
     });
     
-    client.on('ready', () => {
-    console.log('Client is ready!');
+    // client.on('qr', async qr => {
+    //     try {
+    //       const qrCodeDataUrl = await qrcode.toDataURL(qr);
+
+    //       // Save the QR code image as a file
+    //       const filePath = 'qrcode.png'; // Specify the file path
+    //       await qrcode.toFile(filePath, qr, { type: 'png' });
+
+    //       console.log('QR code image saved as qrcode.png'); // Log a message
+
+    //       // You can now open 'qrcode.png' using an external image viewer
+    //     } catch (error) {
+    //       console.error('Error generating QR code:', error);
+    //     }
+    //   });
+
+      client.on('ready', () => {
+        console.log('server is ready!');
     });
     
-    client.on('message', message => {
-    console.log(message.body);
+    // client.on('message', message => {
+    // console.log(message.body);
     
-    });
+    // });
     
 
     // e-commerce chat bot 
@@ -161,11 +178,11 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
             
             await axios.request(loginConfig)
             .then((response) => {
-            console.log(JSON.stringify(response.data));
+            //console.log(JSON.stringify(response.data));
             token = response.data;
             })
             .catch((error) => {
-            console.log(error);
+            // console.log(error);
             });
     
             return token;
@@ -197,13 +214,13 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
                 data : data
             };
             
-            axios.request(config)
+            await axios.request(config)
             .then((response) => {
                 status = JSON.stringify(response.data);
-                console.log(status);
+                //console.log(status);
             })
             .catch((error) => {
-                console.log(error);
+                // console.log(error);
             });
             
 
